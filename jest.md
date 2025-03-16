@@ -1,46 +1,43 @@
-Vue 3 + Vite + TypeScript に Jest を導入し、Login.vue をテストする方法
-## はじめ
-Vue 3 + Vite プロジェクトに Jest を導入し、コンポーネントの単体テストを自動化する方法を紹介します。
-Vite では Vitest を使用することも可能ですが、Jest は 豊富なモック機能 や TypeScript との親和性 が高く、
-既存プロジェクトとの統一性の観点からもよく採用されます。
+## はじめに
+**Vue 3** + **Vite** プロジェクトに **Jest** を導入し、コンポーネントの単体テストを自動化する方法を紹介します。本記事では、Jest のセットアップ方法と、ログインフォームコンポーネントをテストする方法を解説します。
+Vite では Vitest を使用することも可能ですが、Jest は 豊富なモック機能 や TypeScript との親和性 が高く、既存プロジェクトとの統一性の観点からもよく採用されます。
 
-✅ なぜ Jest を使うのか？
+## ✅ なぜ Jest を使うのか？
 
-豊富な機能: テスト実行、アサーション、モック、カバレッジ計測など、テストに必要な機能を網羅
-Vue Test Utils との統合: Vue 公式の @vue/test-utils を活用可能
-JSDOM によるブラウザ環境の再現: Vue コンポーネントのレンダリングや DOM 操作をブラウザなしでテスト
-モジュールモック: API 呼び出しや外部依存のモック化が容易
-CI との統合: GitHub Actions などの CI/CD に組み込みやすい
-本記事では、Jest のセットアップ方法と、ログインフォームコンポーネント (Login.vue) をテストする方法を解説します。
+- **豊富な機能:** テスト実行、アサーション、モック、カバレッジ計測など、テストに必要な機能を網羅
+- **Vue Test Utils との統合:** Vue 公式の @vue/test-utils を活用可能
+- **JSDOM によるブラウザ環境の再現:** Vue コンポーネントのレンダリングや DOM 操作をブラウザなしでテスト
+- **モジュールモック:** API 呼び出しや外部依存のモック化が容易
+- **CI との統合:** GitHub Actions などの CI/CD に組み込みやすい
 
-🛠 Jest のセットアップ
-1️⃣ 依存パッケージのインストール
-まず、Jest と Vue 3 + Vite + TypeScript に対応するテスト関連のパッケージをインストールします。
-
-bash
-Copy
-Edit
+## 🛠 Jest のセットアップ
+依存パッケージのインストール
+まず、**Jest と Vue 3 + Vite + TypeScript** に対応するテスト関連のパッケージをインストールします。
+```
 npm install --save-dev jest @vue/test-utils @vue/vue3-jest ts-jest babel-jest \
-  @babel/preset-env @babel/preset-typescript @types/jest jest-environment-jsdom flush-promises
-各パッケージの役割
-パッケージ名	説明
-jest	Jest テストフレームワーク本体
-@vue/test-utils	Vue 3 用のテストユーティリティ
-@vue/vue3-jest	Vue 3 用の .vue ファイルを Jest で処理するためのトランスフォーマ
-ts-jest	TypeScript のコードを Jest で実行するためのプリセット
-babel-jest	Babel を用いたコードの変換をサポート
-@babel/preset-env	最新の JavaScript 構文をトランスパイル
-@babel/preset-typescript	TypeScript の構文を Babel で解釈するためのプリセット
-@types/jest	Jest の型定義（TypeScript で Jest の API を使うため）
-jest-environment-jsdom	Jest の実行環境として JSDOM を使用するためのライブラリ
-flush-promises	Vue コンポーネントの非同期処理のテストを行う際に便利なユーティリティ
-2️⃣ Jest 設定ファイルの作成 (jest.config.cjs)
-プロジェクトのルートディレクトリに jest.config.cjs を作成し、以下の設定を追加します。
+  @babel/preset-env @babel/preset-typescript @types/jest jest-environment-jsdom 
+```
 
-js
-Copy
-Edit
-// jest.config.cjs
+## 主要な設定ファイル
+
+### package.json
+``` package.json
+{
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@vue/test-utils": "^2.4.6",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.6",
+    // ...その他の依存関係
+  }
+}
+```
+
+### Jest 設定ファイルの作成
+プロジェクトのルートディレクトリに jest.config.cjs を作成し、以下の設定を追加します。
+```jest.config.cjs
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jest-environment-jsdom',
@@ -53,14 +50,11 @@ module.exports = {
     '\\.(jpg|jpeg|png|gif|svg|css)$': '<rootDir>/__mocks__/fileMock.js'
   }
 };
-3️⃣ Babel 設定 (babel.config.js)
+```
+### Babel 設定
 Jest はデフォルトで Babel を使用するため、Babel の設定を追加します。
 プロジェクトルートに babel.config.js を作成し、以下の内容を記述します。
-
-js
-Copy
-Edit
-// babel.config.js
+```babel.config.js
 module.exports = {
   env: {
     test: {
@@ -71,12 +65,10 @@ module.exports = {
     }
   }
 };
-4️⃣ TypeScript 設定 (tsconfig.json)
+```
+### TypeScript 設定
 tsconfig.json を以下のように修正します。
-
-json
-Copy
-Edit
+```tsconfig.json
 {
   "compilerOptions": {
     "strict": true,
@@ -89,82 +81,138 @@ Edit
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "tests/**/*.ts", "__tests__/**/*.ts"]
 }
-5️⃣ Vue シングルファイルコンポーネント (.vue) の型設定
-TypeScript で .vue ファイルを正しく認識させるために vue-shim.d.ts を作成します。
+```
 
-ts
-Copy
-Edit
-// vue-shim.d.ts
-declare module "*.vue" {
-  import { DefineComponent } from "vue";
-  const component: DefineComponent<{}, {}, any>;
-  export default component;
-}
-🚀 Login.vue の概要
+## プロジェクト構成
+```
+project-root/
+├─ src/
+│ └─ Login.vue
+├─ tests/
+│ └─ Login.spec.ts
+├─ jest.config.cjs
+├─ tsconfig.json
+├─ babel.config.js
+└─ package.json
+```
+
+## ログインの概要
+
 対象の Login.vue は、メールアドレスとパスワードを入力してログインするコンポーネントです。
-
-vue
-Copy
-Edit
+```Login.vue
 <template>
-  <form @submit.prevent="login">
-    <input id="email" v-model="email" type="email" placeholder="Email" />
-    <input id="password" v-model="password" type="password" placeholder="Password" />
-    <p v-if="error">{{ error }}</p>
-    <button type="submit">ログイン</button>
-  </form>
+    <div class="login-container">
+    <h2>ログインテスト</h2>
+    <form @submit.prevent="handleSubmit">
+      <div class="input-group">
+        <label for="email">📧 メールアドレス :</label>
+        <input v-model="email" id="email" type="email" required />
+      </div>
+      <div class="input-group">
+        <label for="password">🔒 パスワード:</label>
+        <input v-model="password" id="password" type="password" required />
+      </div>
+      <button type="submit" :disabled="!email || !password">ログイン</button>
+    </form>
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+    </div>
 </template>
 
-<script setup lang="ts">
+<script>
 import { ref } from "vue";
 
-const email = ref("");
-const password = ref("");
-const error = ref("");
+export default {
+name: "Login",
+setup() {
+    const email = ref("");
+    const password = ref("");
+    const errorMessage = ref("");
+    
+    const handleSubmit = async () => {
+      errorMessage.value = "";
+    
+      // APIリクエストシミュレーション（実際のAPI呼び出しに置き換える）
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    
+      if (email.value === "test@example.com" && password.value === "password12345") {
+        alert("✅ ログインが成功しました！");
+      } else {
+        errorMessage.value = "❌ ログインメールとパスワードは一致しません";
+      }
+    };
 
-const login = async () => {
-  if (!email.value || !password.value) {
-    error.value = "メールアドレスとパスワードを入力してください";
-    return;
-  }
-  try {
-    // 認証APIを呼び出す（ここではモック）
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    alert("✅ ログイン成功");
-  } catch {
-    error.value = "ログインに失敗しました";
-  }
+return {
+  email,
+  password,
+  errorMessage,
+  handleSubmit    
+    };
+  },
 };
 </script>
-🔍 Jest を用いたテストの記述 (Login.spec.ts)
-✅ コンポーネントのレンダリングのテスト
-ts
-Copy
-Edit
-import { mount } from "@vue/test-utils";
-import Login from "@/components/Login.vue";
+```
 
-test("ログインフォームが正しくレンダリングされる", () => {
-  const wrapper = mount(Login);
-  expect(wrapper.find("#email").exists()).toBe(true);
-  expect(wrapper.find("#password").exists()).toBe(true);
-  expect(wrapper.find("button").text()).toBe("ログイン");
-});
-✅ 正しい認証情報でのログイン成功のテスト
-ts
-Copy
-Edit
-test("正しいメールアドレスとパスワードでログインすると、成功アラートが表示される", async () => {
-  global.alert = jest.fn();
-  const wrapper = mount(Login);
-  await wrapper.find("#email").setValue("test@example.com");
-  await wrapper.find("#password").setValue("password123");
-  await wrapper.find("form").trigger("submit.prevent");
-
-  expect(global.alert).toHaveBeenCalledWith("✅ ログイン成功");
-});
+## テストケースの実装
+1. コンポーネントのレンダリングのテスト
+    ```Login.spec.ts
+    it("ログインフォームを正しくレンダリング", () => {
+        const wrapper = mount(Login);
+        expect(wrapper.find("h2").text()).toBe("ログインテスト");
+        expect(wrapper.find("label[for='email']").exists()).toBe(true);
+        expect(wrapper.find("label[for='password']").exists()).toBe(true);
+        expect(wrapper.find("button").text()).toBe("ログイン");
+    });
+    ```
+2. 入力フィールドの更新のテスト
+    ```Login.spec.ts
+    it("メールとパスワードの入力フィールドを更新", async () => {
+        const wrapper = mount(Login);
+        const emailInput = wrapper.find("#email");
+        const passwordInput = wrapper.find("#password");
+    
+        await emailInput.setValue("user@example.com");
+        await passwordInput.setValue("securepassword");
+    
+        expect(wrapper.vm.email).toBe("user@example.com");
+        expect(wrapper.vm.password).toBe("securepassword");
+    });
+    ```
+3. ログイン失敗テスト
+    ```Login.spec.ts
+    it("無効なメールとパスワードにエラーが表示", async () => {
+        const wrapper = mount(Login);
+        await wrapper.find("#email").setValue("wrong@example.com");
+        await wrapper.find("#password").setValue("wrongpassword");
+        await wrapper.find("form").trigger("submit.prevent");
+    
+        await new Promise((resolve) => setTimeout(resolve, 600)); // Wait for async function
+    
+        expect(wrapper.find(".error").exists()).toBe(true);
+        expect(wrapper.find(".error").text()).toBe("❌ ログインメールとパスワードは一致しません");
+    });
+    ```
+4. ログイン失敗テスト
+    ```Login.spec.ts
+    it("ログインは成功", async () => {
+        global.alert = jest.fn(); // Mock アラート 関数
+    
+        const wrapper = mount(Login);
+        await wrapper.find("#email").setValue("test@example.com");
+        await wrapper.find("#password").setValue("password123");
+        await wrapper.find("form").trigger("submit.prevent");
+    
+        await new Promise((resolve) => setTimeout(resolve, 600));
+    
+        expect(global.alert).toHaveBeenCalledWith("✅ ログインが成功しました！");
+        expect(wrapper.find(".error").exists()).toBe(false);
+    });
+   ```
+## テスト実行
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3951101/0b1f58a1-8285-40d9-9b8e-724c78df3a9d.png)
 
 ## まとめ
-Jest を使用することで、Vue 3 + Vite + TypeScript のプロジェクトにおいて、コンポーネントの単体テストを効率的に実施できます。
-本記事を参考に、ぜひ Jest を導入し、堅牢な Vue アプリケーションを開発してみてください！ 🚀🔥
+Jest の設定は初めての方にとって少しハードルが高いかもしれませんが、一度理解してしまえば強力なツールとなります。特に Vue3 と TypeScript の組み合わせは、現代的なフロントエンド開発において必須のスキルです。Jest を使用することで、Vue 3 + Vite + TypeScript のプロジェクトにおいて、コンポーネントの単体テストを効率的に実施できます。
+本記事を参考に、ぜひ **Jest** を導入し、堅牢な Vue アプリケーションを開発してみてください！ 🚀🔥
+
+https://jestjs.io/ja/docs/getting-started
+
