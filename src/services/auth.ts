@@ -21,7 +21,7 @@ export interface LoginResult {
       
       return {
         success: false,
-        message: 'Invalid email or password'
+        message: 'ログインメールとパスワードは一致しません'
       };
     };
     
