@@ -12,7 +12,7 @@ jest.mock('@/services/auth', () => ({
         return { success: true, token: 'mock-token' }
       }
       
-      return { success: false, message: 'ログインメールとパスワードは一致しません' }
+      return { success: false, message: 'ログインメールとパスワードは一致しません1' }
     })
   })
 }))
@@ -73,7 +73,7 @@ describe('LoginComponent', () => {
     expect(wrapper.find('.warning-message').text()).toContain('8文字以上の長さ')
     
     // Test password without uppercase
-    await passwordInput.setValue('password123')
+    await passwordInput.setValue('b12345678')
     await passwordInput.trigger('blur')
     expect(wrapper.find('.warning-message').text()).toContain('1つの大文字が含まれている必要')
     
